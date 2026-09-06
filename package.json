@@ -1,0 +1,30 @@
+{
+  "name": "27guessr",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Zgadnij utw\u00f3r 27.Fuckdemons \u2014 Heardle po polsku.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "catalog": "node scripts/build-catalog.mjs",
+    "catalog:verify": "node scripts/verify-catalog.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "^0.462.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "playwright": "^1.49.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3"
+  }
+}
