@@ -11,8 +11,9 @@
     "typecheck": "tsc --noEmit",
     "catalog": "node scripts/build-catalog.mjs",
     "catalog:verify": "node scripts/verify-catalog.mjs",
-    "test": "node --test tests/*.test.mjs",
-    "smoke": "node scripts/smoke.mjs"
+    "schedule": "node scripts/build-schedule.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.462.0",

@@ -135,6 +135,7 @@ async function main() {
   console.log(`Wrote ${catalog.length} tracks to ${OUT}`);
   console.log(`  solo: ${catalog.length - collabs}   collab: ${collabs}`);
   console.log(`  span: ${catalog[0].releaseDate} → ${catalog.at(-1).releaseDate}`);
+  console.log('\nNow run `npm run schedule` so new songs get days assigned.');
 }
 
 main().catch((err) => {

@@ -42,6 +42,7 @@ npm run dev        # http://localhost:5173
 | `npm test` | testy wyznaczania utworu dnia |
 | `npm run catalog` | przebudowuje `src/data/catalog.json` z API Apple Music |
 | `npm run catalog:verify` | sprawdza katalog i dostępność fragmentów (`-- --all` sprawdza wszystkie) |
+| `npm run schedule` | dopisuje kolejne dni do `src/data/schedule.json` |
 
 ## Jak to działa
 
@@ -60,13 +61,28 @@ Katalog to **64 unikalne utwory** — 29 solowych i 35 gościnnych (Popkiller M�
 Wilki, Hotel Maffija, CBW, esceh, Petito i inni). Utwory z udziałem gości
 pokazują pełną listę wykonawców w podpowiedziach i w wyniku.
 
-**Utwór dnia.** `src/game/daily.ts` liczy numer dnia względem `2026-01-01` w
-strefie `Europe/Warsaw`, a potem tasuje katalog ziarnowanym Fisher–Yates
-(xmur3 + mulberry32). Każde przejście przez katalog to osobna permutacja, więc
-utwór nie powtórzy się przez 64 dni, a wynik jest identyczny na każdym
-urządzeniu bez żadnego serwera. `tests/daily.test.mjs` pilnuje obu tych
-własności — zmiana ziarna psuje test, zamiast po cichu przetasować wszystkim
-archiwum.
+**Utwór dnia.** Kalendarz leży w repo jako `src/data/schedule.json` — lista
+„dzień → utwór", generowana przez `scripts/build-schedule.mjs`.
+`src/game/daily.ts` tylko z niej czyta.
+
+To celowo plik, a nie obliczenie. Wcześniej kolejność powstawała przez tasowanie
+katalogu w przeglądarce — przez co **jeden nowy singiel przetasowywał wszystkie
+dni, łącznie z tymi już rozegranymi**. Archiwum przepisywało sobie historię, a
+wyniki przestawały się zgadzać między graczami. Plik to naprawia.
+
+Zasady generatora:
+
+- **Przeszłość jest zamrożona.** Dni do dzisiaj włącznie (plus jeden dzień
+  zapasu) nigdy się nie ruszają.
+- **Przyszłość można przetasować.** Dni, których nikt jeszcze nie widział — w
+  interfejsie są zablokowane — generator rozdaje od nowa, dzięki czemu nowy
+  utwór trafia do gry w kilka dni, a nie po wyczerpaniu całego kalendarza.
+- **Bez powtórek.** Utwory rozdawane są z „worka": nowy worek otwiera się
+  dopiero, gdy poprzedni się skończy, więc żaden utwór nie wróci, zanim zagrają
+  wszystkie.
+
+`tests/schedule.test.mjs` pilnuje każdej z tych własności, a osobny test
+zaczyna psuć CI, gdy kalendarza zostaje mniej niż 180 dni.
 
 **Logo.** `scripts/make-logo.py` (Pillow) zamienia źródłową grafikę
 `public/logo-27-original.png` na biały znak z przezroczystym tłem plus favicon i
@@ -76,7 +92,7 @@ Skrypt jest potrzebny tylko do regeneracji — gotowe pliki są w repo.
 ## Testy
 
 ```bash
-npm test                                   # logika utworu dnia
+npm test                                   # kalendarz: stabilność i zapas
 npm run catalog:verify                     # katalog + fragmenty audio
 npm run build && npm run preview           # a w drugim terminalu:
 node scripts/smoke.mjs http://localhost:4173
@@ -90,6 +106,20 @@ potrzebujesz.
 oddaje błędny strzał, pomija próbę, trafia — i zapisuje zrzuty wszystkich
 motywów do `screenshots/`. Domyślnie podstawia lokalnie wygenerowany dźwięk;
 `--live` odtwarza prawdziwe fragmenty z Apple.
+
+## Gdy 27 wypuści nowy utwór
+
+```bash
+npm run catalog          # dociąga nowe wydania z Apple Music
+npm run schedule         # przydziela im dni (nie rusza dni już rozegranych)
+npm test                 # sprawdza, że nic z przeszłości się nie przesunęło
+git add src/data && git commit -m "Catalog: <tytuł>"
+```
+
+Apple potrafi wystawić ten sam utwór kilka razy (singiel, potem EP, potem
+składanka) — deduplikacja zostawia najwcześniejsze wydanie i woli wersję
+solową. Zdarza jej się też zmieniać wielkość liter w tytułach; od tego jest
+mapa `TITLE_OVERRIDES` na górze `scripts/build-catalog.mjs`.
 
 ## Wdrożenie
 
