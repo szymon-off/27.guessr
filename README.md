@@ -1,12 +1,14 @@
 # 27.GUESSR
 
+## ▶ [Zagraj teraz — szymon-off.github.io/27.guessr](https://szymon-off.github.io/27.guessr/)
+
 Zgadnij utwór **27.Fuckdemons** w sześciu próbach. Każda pomyłka odblokowuje
 więcej muzyki — od 0,1 s do 16 s.
 
 Gra w stylu Heardle, inspirowana [33hit.pl](https://www.33hit.pl/), w niebieskiej
 odsłonie.
 
-![27.GUESSR](public/og-image.png)
+[![27.GUESSR — zagraj](public/og-image.png)](https://szymon-off.github.io/27.guessr/)
 
 ## Jak grać
 
@@ -122,6 +124,8 @@ solową. Zdarza jej się też zmieniać wielkość liter w tytułach; od tego je
 mapa `TITLE_OVERRIDES` na górze `scripts/build-catalog.mjs`.
 
 ## Wdrożenie
+
+Gra działa na **[szymon-off.github.io/27.guessr](https://szymon-off.github.io/27.guessr/)**.
 
 Build jest w pełni statyczny, z relatywnym `base`, więc działa pod dowolną
 ścieżką. `.github/workflows/deploy.yml` publikuje go na GitHub Pages przy każdym
