@@ -2,12 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    # The repo's default branch is currently the feature branch, and there is
-    # no `main` yet — listing both means the workflow fires either way, before
-    # and after any rename or merge.
-    branches:
-      - main
-      - claude/game-recreation-custom-theme-8wkr7z
+    branches: [main]
   workflow_dispatch:
 
 permissions:
