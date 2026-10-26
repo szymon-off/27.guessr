@@ -45,6 +45,7 @@ npm run dev        # http://localhost:5173
 | `npm run catalog` | przebudowuje `src/data/catalog.json` z API Apple Music |
 | `npm run catalog:verify` | sprawdza katalog i dostępność fragmentów (`-- --all` sprawdza wszystkie) |
 | `npm run schedule` | dopisuje kolejne dni do `src/data/schedule.json` |
+| `npm run sync` | to, co robi workflow: odświeża katalog i kalendarz, ale tylko gdy jest po co |
 
 ## Jak to działa
 
@@ -111,11 +112,52 @@ motywów do `screenshots/`. Domyślnie podstawia lokalnie wygenerowany dźwięk;
 
 ## Gdy 27 wypuści nowy utwór
 
+Dzieje się to samo. `.github/workflows/sync-catalog.yml` co 6 godzin pyta Apple
+Music o nowe wydania i — jeśli jest co wdrażać — otwiera PR `bot/catalog-sync`
+z gotowym katalogiem i kalendarzem. Wystarczy go zmergować; deploy rusza sam.
+
+Workflow jest wybredny, żeby nie zasypywać PR-ami (logika w
+`scripts/sync-catalog.mjs`, testy w `tests/sync-catalog.test.mjs`):
+
+- **Cisza przy rutynie.** Apple co kilka tygodni podmienia adresy fragmentów u
+  kilkunastu utworów, a stare dalej działają — to nie powód do PR-a. Nowy adres
+  jest przyjmowany tylko tam, gdzie stary przestał odpowiadać.
+- **Nowy utwór dopiero, gdy gra.** Jeśli Apple już go wystawił, ale fragment
+  jeszcze się nie odtwarza, utwór czeka do następnego przebiegu.
+- **Zmiany tytułu, wykonawców, albumu lub daty** istniejącego utworu trafiają do
+  PR-a; okładki i długości — nie.
+- **Kalendarz też się sam dopisuje**, gdy zostaje mu mniej niż 365 dni.
+- **Zero zmian w przeszłości.** Po przeliczeniu kalendarza skrypt sprawdza, że
+  każdy dzień do jutra włącznie jest identyczny z poprzednim. PR jest budowany
+  od nowa z `main` przy każdym przebiegu, więc nie robi się nieświeży — mimo to
+  zmerguj go w ciągu doby (kalendarz zamraża tylko dzisiaj i jutro).
+- **Opis PR-a** pokazuje, kiedy każdy nowy utwór po raz pierwszy zagra, i
+  ostrzega o remiksach oraz utworach podobnych do już istniejących.
+- **Utwór zniknął z Apple.** Jeśli fragment dalej działa, zostaje w grze. Jeśli
+  nie, workflow niczego nie zmienia i zakłada jedno zgłoszenie „Catalog sync
+  needs attention" (zamyka je samo, gdy problem zniknie).
+
+Jednorazowa konfiguracja: **Settings → Actions → General → Workflow permissions →
+„Allow GitHub Actions to create and approve pull requests"**. Opcjonalnie
+sekret `SYNC_TOKEN` (osobisty token z uprawnieniami `contents`, `pull requests`,
+`issues`) sprawia, że PR uruchamia inne workflowy. Ręcznie: zakładka Actions →
+Sync catalog → Run workflow (`dry_run` sprawdza wszystko bez PR-a). GitHub
+wyłącza zaplanowane workflowy po 60 dniach bez aktywności w repo — wtedy wystarczy
+włączyć go ponownie.
+
+To samo lokalnie:
+
 ```bash
-npm run catalog          # dociąga nowe wydania z Apple Music
-npm run schedule         # przydziela im dni (nie rusza dni już rozegranych)
-npm test                 # sprawdza, że nic z przeszłości się nie przesunęło
-git add src/data && git commit -m "Catalog: <tytuł>"
+npm run sync             # katalog + kalendarz, z całą logiką decyzji
+git diff src/data        # co się zmieniło
+```
+
+Albo ręcznie, krok po kroku (`npm run catalog` nadpisuje wszystko bez filtra):
+
+```bash
+npm run catalog
+npm run schedule
+npm test
 ```
 
 Apple potrafi wystawić ten sam utwór kilka razy (singiel, potem EP, potem

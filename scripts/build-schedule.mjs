@@ -41,6 +41,11 @@ const warsaw = new Intl.DateTimeFormat('en-CA', {
   day: '2-digit',
 });
 
+/** Today's day number. The daily song rolls over at midnight in Warsaw. */
+export function todayDay(now = new Date()) {
+  return dateToDay(warsaw.format(now));
+}
+
 /** Day 1 is the epoch itself, matching src/game/daily.ts. */
 export function dateToDay(date) {
   const a = Date.parse(`${EPOCH}T12:00:00Z`);
@@ -153,7 +158,7 @@ async function main() {
     ? JSON.parse(await readFile(SCHEDULE_FILE, 'utf8')).days
     : [];
 
-  const today = dateToDay(warsaw.format(new Date()));
+  const today = todayDay();
   const through = arg('through');
   const explicitDays = arg('days');
   const target = through

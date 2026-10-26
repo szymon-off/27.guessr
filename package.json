@@ -12,6 +12,7 @@
     "catalog": "node scripts/build-catalog.mjs",
     "catalog:verify": "node scripts/verify-catalog.mjs",
     "schedule": "node scripts/build-schedule.mjs",
+    "sync": "node scripts/sync-catalog.mjs",
     "smoke": "node scripts/smoke.mjs",
     "test": "node --test tests/*.test.mjs"
   },
