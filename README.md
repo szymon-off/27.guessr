@@ -1,5 +1,7 @@
 # 27.GUESSR
 
+[![Sync catalog](https://github.com/szymon-off/27.guessr/actions/workflows/sync-catalog.yml/badge.svg)](https://github.com/szymon-off/27.guessr/actions/workflows/sync-catalog.yml)
+
 ## ▶ [Zagraj teraz — szymon-off.github.io/27.guessr](https://szymon-off.github.io/27.guessr/)
 
 Zgadnij utwór **27.Fuckdemons** w sześciu próbach. Każda pomyłka odblokowuje
