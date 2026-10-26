@@ -113,7 +113,7 @@ motywów do `screenshots/`. Domyślnie podstawia lokalnie wygenerowany dźwięk;
 ## Gdy 27 wypuści nowy utwór
 
 Dzieje się to samo. `.github/workflows/sync-catalog.yml` co tydzień, w
-poniedziałek około 1:17 (zimą) lub 2:17 (latem) czasu polskiego, pyta Apple
+poniedziałek o 1:00 (zimą) lub 2:00 (latem) czasu polskiego, pyta Apple
 Music o nowe wydania i — jeśli jest co wdrażać — otwiera PR `bot/catalog-sync`
 z gotowym katalogiem i kalendarzem. Wystarczy go zmergować; deploy rusza sam.
 

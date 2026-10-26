@@ -7,8 +7,8 @@ name: Sync catalog
 
 on:
   schedule:
-    # UTC only: 00:17 is 02:17 in Warsaw in summer, 01:17 in winter.
-    - cron: '17 0 * * 1'
+    # UTC only: 00:00 is 01:00 in Warsaw in winter, 02:00 in summer.
+    - cron: '0 0 * * 1'
   workflow_dispatch:
     inputs:
       dry_run:
