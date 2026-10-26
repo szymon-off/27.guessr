@@ -112,10 +112,10 @@ motywów do `screenshots/`. Domyślnie podstawia lokalnie wygenerowany dźwięk;
 
 ## Gdy 27 wypuści nowy utwór
 
-Dzieje się to samo. `.github/workflows/sync-catalog.yml` co tydzień, w nocy z
-niedzieli na poniedziałek, pyta Apple Music o nowe wydania i — jeśli jest co
-wdrażać — otwiera PR `bot/catalog-sync` z gotowym katalogiem i kalendarzem.
-Wystarczy go zmergować; deploy rusza sam.
+Dzieje się to samo. `.github/workflows/sync-catalog.yml` co tydzień, w
+poniedziałek około 1:17 (zimą) lub 2:17 (latem) czasu polskiego, pyta Apple
+Music o nowe wydania i — jeśli jest co wdrażać — otwiera PR `bot/catalog-sync`
+z gotowym katalogiem i kalendarzem. Wystarczy go zmergować; deploy rusza sam.
 
 Workflow jest wybredny, żeby nie zasypywać PR-ami (logika w
 `scripts/sync-catalog.mjs`, testy w `tests/sync-catalog.test.mjs`):
