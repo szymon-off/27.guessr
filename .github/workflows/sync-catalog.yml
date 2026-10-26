@@ -1,0 +1,124 @@
+name: Sync catalog
+
+# Once a week, in the small hours of Monday, looks for new 27.Fuckdemons
+# releases and opens a PR when there is something worth shipping. The decisions
+# live in scripts/sync-catalog.mjs: routine Apple URL churn is ignored, new
+# songs / dead previews / a thinning schedule are not.
+
+on:
+  schedule:
+    # UTC only: 00:00 is 01:00 in Warsaw in winter, 02:00 in summer.
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Run every check but do not push, open a PR or file an issue
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+# One run at a time, and never cancel one halfway through a push.
+concurrency:
+  group: sync-catalog
+  cancel-in-progress: false
+
+env:
+  BRANCH: bot/catalog-sync
+  BASE: ${{ github.event.repository.default_branch }}
+  # Pull requests opened with the default token do not trigger other workflows,
+  # and merging one does not trigger the Pages deploy. A personal access token
+  # in the SYNC_TOKEN secret is optional and lifts both limits.
+  GH_TOKEN: ${{ secrets.SYNC_TOKEN || github.token }}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          token: ${{ secrets.SYNC_TOKEN || github.token }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+
+      - name: Look for changes
+        id: sync
+        run: node scripts/sync-catalog.mjs --report "$RUNNER_TEMP/report.md"
+
+      - name: Summary
+        run: cat "$RUNNER_TEMP/report.md" >> "$GITHUB_STEP_SUMMARY"
+
+      # Same gates as a deploy, plus every preview URL — a PR that would turn
+      # main red is never opened.
+      - name: Test, build and check every preview
+        if: steps.sync.outputs.action == 'propose'
+        run: |
+          npm test
+          npm run build
+          npm run catalog:verify -- --all
+
+      - name: Open or update the pull request
+        if: steps.sync.outputs.action == 'propose' && !inputs.dry_run
+        env:
+          TITLE: ${{ steps.sync.outputs.title }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout -B "$BRANCH"
+          git add src/data
+          git commit -m "$TITLE" -m 'Automated by .github/workflows/sync-catalog.yml'
+
+          # Rebuilt from the base branch on every run, so an open PR never
+          # drifts. Only push when the content actually differs.
+          git fetch --depth=1 origin "$BRANCH" 2>/dev/null || true
+          if git rev-parse -q --verify "origin/$BRANCH" >/dev/null \
+            && git diff --quiet "origin/$BRANCH" HEAD -- src/data; then
+            echo "Branch $BRANCH is already up to date."
+          else
+            git push --force origin "$BRANCH"
+          fi
+
+          number=$(gh pr list --head "$BRANCH" --base "$BASE" --state open \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh pr edit "$number" --title "$TITLE" --body-file "$RUNNER_TEMP/report.md"
+          else
+            gh pr create --head "$BRANCH" --base "$BASE" --title "$TITLE" \
+              --body-file "$RUNNER_TEMP/report.md" || {
+              echo "::error::Could not open the PR. Branch $BRANCH was pushed. Enable Settings → Actions → General → 'Allow GitHub Actions to create and approve pull requests', or add a SYNC_TOKEN secret."
+              exit 1
+            }
+          fi
+
+      # A song that vanished from Apple with a dead preview is not something to
+      # fix unattended. One issue, edited in place — not one per run.
+      - name: Ask for attention
+        if: steps.sync.outputs.action == 'attention' && !inputs.dry_run
+        run: |
+          title='Catalog sync needs attention'
+          number=$(gh issue list --state open --search "\"$title\" in:title" \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --body-file "$RUNNER_TEMP/report.md"
+          else
+            gh issue create --title "$title" --body-file "$RUNNER_TEMP/report.md"
+          fi
+
+      - name: Close the attention issue once it is resolved
+        if: steps.sync.outputs.action != 'attention' && !inputs.dry_run
+        run: |
+          number=$(gh issue list --state open --search '"Catalog sync needs attention" in:title' \
+            --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue close "$number" --comment 'The sync ran clean again.'
+          fi
