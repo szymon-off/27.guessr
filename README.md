@@ -112,9 +112,10 @@ motywów do `screenshots/`. Domyślnie podstawia lokalnie wygenerowany dźwięk;
 
 ## Gdy 27 wypuści nowy utwór
 
-Dzieje się to samo. `.github/workflows/sync-catalog.yml` co 6 godzin pyta Apple
-Music o nowe wydania i — jeśli jest co wdrażać — otwiera PR `bot/catalog-sync`
-z gotowym katalogiem i kalendarzem. Wystarczy go zmergować; deploy rusza sam.
+Dzieje się to samo. `.github/workflows/sync-catalog.yml` co tydzień, w nocy z
+niedzieli na poniedziałek, pyta Apple Music o nowe wydania i — jeśli jest co
+wdrażać — otwiera PR `bot/catalog-sync` z gotowym katalogiem i kalendarzem.
+Wystarczy go zmergować; deploy rusza sam.
 
 Workflow jest wybredny, żeby nie zasypywać PR-ami (logika w
 `scripts/sync-catalog.mjs`, testy w `tests/sync-catalog.test.mjs`):
@@ -127,10 +128,11 @@ Workflow jest wybredny, żeby nie zasypywać PR-ami (logika w
 - **Zmiany tytułu, wykonawców, albumu lub daty** istniejącego utworu trafiają do
   PR-a; okładki i długości — nie.
 - **Kalendarz też się sam dopisuje**, gdy zostaje mu mniej niż 365 dni.
-- **Zero zmian w przeszłości.** Po przeliczeniu kalendarza skrypt sprawdza, że
-  każdy dzień do jutra włącznie jest identyczny z poprzednim. PR jest budowany
-  od nowa z `main` przy każdym przebiegu, więc nie robi się nieświeży — mimo to
-  zmerguj go w ciągu doby (kalendarz zamraża tylko dzisiaj i jutro).
+- **Zero zmian w przeszłości.** Kalendarz jest zamrożony na 9 dni do przodu, a po
+  przeliczeniu skrypt sprawdza, że każdy zamrożony dzień jest identyczny z
+  poprzednim. Dzięki temu PR, który poleży kilka dni, nie ruszy utworów, które w
+  międzyczasie zdążyły zagrać — zmerguj go w ciągu tygodnia. Nowy utwór trafia
+  do gry po ok. 9 dniach.
 - **Opis PR-a** pokazuje, kiedy każdy nowy utwór po raz pierwszy zagra, i
   ostrzega o remiksach oraz utworach podobnych do już istniejących.
 - **Utwór zniknął z Apple.** Jeśli fragment dalej działa, zostaje w grze. Jeśli

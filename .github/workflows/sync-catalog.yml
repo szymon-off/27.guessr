@@ -1,12 +1,13 @@
 name: Sync catalog
 
-# Looks for new 27.Fuckdemons releases and opens a PR when there is something
-# worth shipping. The decisions live in scripts/sync-catalog.mjs: routine Apple
+# Once a week, in the night from Sunday to Monday, looks for new 27.Fuckdemons
+# releases and opens a PR when there is something worth shipping. The decisions live in scripts/sync-catalog.mjs: routine Apple
 # URL churn is ignored, new songs / dead previews / a thinning schedule are not.
 
 on:
   schedule:
-    - cron: '17 */6 * * *'
+    # UTC: 22:47 is 00:47 in Warsaw in summer, 23:47 in winter.
+    - cron: '47 22 * * 0'
   workflow_dispatch:
     inputs:
       dry_run:

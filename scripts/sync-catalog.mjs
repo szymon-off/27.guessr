@@ -19,8 +19,9 @@
  *   - A song Apple stopped listing is kept while its preview still plays. If
  *     the preview is dead too, nothing is proposed and a human is asked to look,
  *     since that song may already sit on a played day.
- *   - After rescheduling, every day up to tomorrow is proven identical to what
- *     was there before. The archive must never move.
+ *   - The schedule is locked FREEZE_AHEAD_DAYS ahead, and after rescheduling
+ *     every locked day is proven identical to what was there before. The
+ *     archive must never move, even if the PR waits days for a merge.
  *
  *   npm run sync                      # edits src/data, prints what it did
  *   npm run sync -- --report out.md   # also writes the PR / issue body
@@ -44,6 +45,14 @@ const SCHEDULE_FILE = resolve(HERE, '../src/data/schedule.json');
  * months to merge the PR.
  */
 export const MIN_RUNWAY_DAYS = 365;
+
+/**
+ * The sync runs weekly and its PR may sit open for days, so the schedule is
+ * frozen this far ahead rather than just through tomorrow. A PR stays safe to
+ * merge until the frozen window runs out, i.e. for about a week. A new song
+ * therefore first plays roughly nine days out.
+ */
+export const FREEZE_AHEAD_DAYS = 9;
 
 /** Fields a player can notice. Artwork, durations and links are cosmetic. */
 const MEANINGFUL = ['title', 'artist', 'album', 'isCollab', 'year', 'releaseDate'];
@@ -267,12 +276,12 @@ export function renderReport(r) {
   out.push(
     '### Schedule',
     '',
-    `- Days 1–${r.frozenThrough} (everything played or playing) are verified identical to \`main\`.`,
+    `- Days 1–${r.frozenThrough} (played, playing, or locked for the week ahead) are verified identical to \`main\`.`,
     `- ${r.scheduleDays} days now, through ${r.scheduleEnd}; ${r.runway} days of runway.`,
     '',
-    'Merge within a day. The schedule only locks today and tomorrow, so a PR left open for ' +
-      'days would rewrite songs already played. While this PR is open, the workflow rebuilds ' +
-      'it from `main` every few hours so it stays safe to merge.',
+    'Merge within a week. The schedule is locked for the next nine days, so this PR cannot ' +
+      'touch a song that has been played by then; a PR left open longer could. The next weekly ' +
+      'run rebuilds it from `main` anyway.',
   );
   return out.join('\n');
 }
@@ -284,9 +293,9 @@ function arg(name) {
   return i !== -1 ? process.argv[i + 1] : undefined;
 }
 
-function runScript(file) {
+function runScript(file, args = []) {
   try {
-    return execFileSync(process.execPath, [resolve(HERE, file)], { encoding: 'utf8' });
+    return execFileSync(process.execPath, [resolve(HERE, file), ...args], { encoding: 'utf8' });
   } catch (err) {
     throw new Error(`${file} failed:\n${err.stderr || err.stdout || err.message}`);
   }
@@ -336,10 +345,10 @@ async function main() {
   if (result.action === 'propose') {
     await writeFile(CATALOG_FILE, `${JSON.stringify(result.catalog, null, 2)}\n`, 'utf8');
   }
-  runScript('build-schedule.mjs');
+  const frozenThrough = today + FREEZE_AHEAD_DAYS;
+  runScript('build-schedule.mjs', ['--freeze-through', String(frozenThrough)]);
 
   const schedule = JSON.parse(await readFile(SCHEDULE_FILE, 'utf8')).days;
-  const frozenThrough = today + 1;
   assertPastFrozen(scheduleBefore, schedule, frozenThrough);
 
   const firstPlay = new Map();

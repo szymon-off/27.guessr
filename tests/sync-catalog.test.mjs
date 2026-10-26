@@ -1,5 +1,5 @@
 /**
- * The catalog sync runs unattended every few hours, so the decision of "is this
+ * The catalog sync runs unattended every week, so the decision of "is this
  * worth a PR" has to be right without a human watching. These tests pin the
  * cases that matter: Apple's routine URL churn must stay quiet, real changes
  * must get through, and nothing may silently drop a song the schedule uses.
