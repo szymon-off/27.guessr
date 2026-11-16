@@ -922,5 +922,19 @@
     "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/1e/d3/23/1ed3236e-ac39-4755-f715-d87c67be9085/mzaf_12194387951709860251.plus.aac.p.m4a",
     "durationMs": 135000,
     "appleUrl": "https://music.apple.com/pl/album/one-to-diab%C5%82y/6817813787?i=6817813788&uo=4"
+  },
+  {
+    "id": "6829798464",
+    "title": "nic nie boli jak",
+    "sortKey": "nicniebolijak",
+    "artist": "27.Fuckdemons",
+    "isCollab": false,
+    "album": "nic nie boli jak",
+    "year": 2026,
+    "releaseDate": "2026-11-12",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/fb/a2/ee/fba2eedb-dcc9-cace-adf3-7de9f1a37ae6/0001165588068.jpg/500x500bb.jpg",
+    "previewUrl": "https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/5a/5d/c7/5a5dc75c-60b1-60ac-4fca-7d1eee6b9136/mzaf_5979350250192946292.plus.aac.p.m4a",
+    "durationMs": 165417,
+    "appleUrl": "https://music.apple.com/pl/album/nic-nie-boli-jak/6829798461?i=6829798464&uo=4"
   }
 ]
